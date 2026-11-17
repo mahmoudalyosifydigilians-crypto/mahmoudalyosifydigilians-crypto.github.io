@@ -27,6 +27,14 @@
   };
   var ORDER = ['swd', 'ds', 'cyber'];
 
+  /* Cards-per-page layouts — must match the .pages[data-per] rules in styles.css. */
+  var LAYOUTS = {
+    1: { cols: 1, rows: 1, land: false, size: '180 × 95 mm' },
+    3: { cols: 1, rows: 3, land: false, size: '170 × 90 mm' },
+    6: { cols: 2, rows: 3, land: true, size: '115 × 61 mm' },
+    8: { cols: 2, rows: 4, land: false, size: '90 × 48 mm' }
+  };
+
   var SVG_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
   var ICON_BODY = {
     ds: '<path d="M5 6.5 12 4M5 6.5 12 12M5 17.5 12 12M5 17.5 12 20M12 4l7 4M12 12l7-4M12 12l7 4M12 20l7-4" stroke-width="1.3"/>' +
@@ -41,7 +49,7 @@
 
   /* ---------------- State ---------------- */
   var KEY = 'pm-idcard-v1';
-  var DEFAULTS = { name: '', email: '', track: '', job: '', link: '', photo: '', zoom: 1, px: 0.5, py: 0.3 };
+  var DEFAULTS = { name: '', email: '', mobile: '', track: '', job: '', link: '', photo: '', zoom: 1, px: 0.5, py: 0.3, per: 6 };
   var state = assign({}, DEFAULTS);
   var persist = true;
 
@@ -61,6 +69,7 @@
       }
     } catch (e) { /* storage unavailable */ }
     if (!TRACKS[state.track]) state.track = '';
+    if (!LAYOUTS[state.per]) state.per = DEFAULTS.per;
   }
   function save() {
     if (!persist) return;
@@ -74,7 +83,7 @@
 
   /* ---------------- Elements ---------------- */
   var el = {};
-  ['inName', 'inEmail', 'inJob', 'inLink', 'inPhoto', 'inZoom', 'nameNote', 'linkNote', 'testLink',
+  ['inName', 'inEmail', 'inMobile', 'mobileNote', 'perPick', 'stageSub', 'noteFront', 'noteBack', 'fMobile', 'inJob', 'inLink', 'inPhoto', 'inZoom', 'nameNote', 'linkNote', 'testLink',
    'trackPick', 'jobChips', 'drop', 'dropThumb', 'dropTitle', 'photoTools', 'dragTip', 'photoErr',
    'btnPhotoReset', 'btnPrint', 'btnReset', 'paperFit', 'pages', 'frontCard', 'backCard',
    'fName', 'fRole', 'fTrack', 'fTrackDd', 'fTrackIco', 'fEmail', 'fProgram', 'seal', 'fNet',
@@ -153,7 +162,7 @@
     var tr = TRACKS[t], ds = t === 'ds', id = 'seal-' + (t || 'none');
     var top = 'PROFESSIONAL MASTER';
     var bottom = tr ? tr.short : 'SELECT YOUR TRACK';
-    var textFill = ds ? '#001631' : '#FABD0F';
+    var textFill = ds ? '#131A2E' : '#FABD0F';
     var innerStroke = t === 'cyber' ? '#B90E31' : (ds ? 'url(#' + id + 'g)' : '#FABD0F');
     var fit = function (txt, arc) { return Math.min(6.4, (arc * 0.84) / (txt.length * 0.9)).toFixed(2); };
     var edge;
@@ -166,7 +175,7 @@
       edge = '<polygon points="' + p.join(' ') + '" fill="url(#' + id + 'g)"/>' +
              '<circle cx="50" cy="50" r="45.4" fill="url(#' + id + 'g)" stroke="#7A5806" stroke-opacity=".35" stroke-width=".4"/>';
     } else {
-      edge = '<circle cx="50" cy="50" r="49" fill="#002452"/>' +
+      edge = '<circle cx="50" cy="50" r="49" fill="#1D2A4C"/>' +
              '<circle cx="50" cy="50" r="49" fill="none" stroke="#FABD0F" stroke-opacity=".8" stroke-width=".8"/>';
     }
     return '<svg viewBox="0 0 100 100" aria-hidden="true">' +
@@ -179,13 +188,13 @@
         '<path id="' + id + 'b" d="M6.5,50 A43.5,43.5 0 0,0 93.5,50"/>' +
       '</defs>' +
       edge +
-      '<circle cx="50" cy="50" r="' + (ds ? 43.6 : 45.6) + '" fill="none" stroke="' + (ds ? '#001631' : '#FABD0F') + '" stroke-opacity=".5" stroke-width=".5"/>' +
+      '<circle cx="50" cy="50" r="' + (ds ? 43.6 : 45.6) + '" fill="none" stroke="' + (ds ? '#131A2E' : '#FABD0F') + '" stroke-opacity=".5" stroke-width=".5"/>' +
       '<text font-family="Montserrat, Arial, sans-serif" font-weight="700" font-size="' + fit(top, 121) + '" letter-spacing=".14em" fill="' + textFill + '" text-anchor="middle">' +
         '<textPath href="#' + id + 't" startOffset="50%">' + top + '</textPath></text>' +
       '<text font-family="Montserrat, Arial, sans-serif" font-weight="700" font-size="' + fit(bottom, 128) + '" letter-spacing=".14em" fill="' + textFill + '" text-anchor="middle">' +
         '<textPath href="#' + id + 'b" startOffset="50%">' + esc(bottom) + '</textPath></text>' +
       '<circle cx="9.6" cy="50" r="1.5" fill="' + textFill + '"/><circle cx="90.4" cy="50" r="1.5" fill="' + textFill + '"/>' +
-      '<circle cx="50" cy="50" r="29.5" fill="#001631"/>' +
+      '<circle cx="50" cy="50" r="29.5" fill="#131A2E"/>' +
       '<circle cx="50" cy="50" r="29.5" fill="none" stroke="' + innerStroke + '" stroke-width="' + (t === 'cyber' ? 1.8 : 1.2) + '"/>' +
       '<circle cx="50" cy="50" r="26.6" fill="none" stroke="#FABD0F" stroke-opacity=".35" stroke-width=".4"/>' +
       (tr
@@ -228,7 +237,7 @@
       el.qrTile.innerHTML =
         '<svg viewBox="' + (-m) + ' ' + (-m) + ' ' + size + ' ' + size + '" shape-rendering="crispEdges" role="img" aria-label="QR code">' +
         '<rect x="' + (-m) + '" y="' + (-m) + '" width="' + size + '" height="' + size + '" fill="#fff"/>' +
-        '<path d="' + d + '" fill="#001631"/></svg>';
+        '<path d="' + d + '" fill="#131A2E"/></svg>';
     } catch (e) {
       el.qrTile.innerHTML = '<div class="qr-empty"><span>Link is<br>too long</span></div>';
     }
@@ -256,7 +265,54 @@
     });
   }
 
-  /* Copy the master front/back card into the other two slots of each page. */
+  /* Build the slots for the chosen cards-per-page layout: the master slot plus empty copy
+     slots (filled by syncCopies), crop marks on the outer edges of the grid, the page size
+     for printing and the labels. */
+  var pageStyle = document.createElement('style');
+  document.head.appendChild(pageStyle);
+  var builtPer = null;
+  function buildLayout() {
+    var per = LAYOUTS[state.per] ? state.per : DEFAULTS.per, L = LAYOUTS[per];
+    if (builtPer === per) return;
+    builtPer = per;
+    el.pages.setAttribute('data-per', per);
+    pageStyle.textContent = '@page { size: A4 ' + (L.land ? 'landscape' : 'portrait') + '; margin: 0; }';
+    [['front', el.noteFront], ['back', el.noteBack]].forEach(function (p) {
+      var sheet = p[1].parentNode;
+      Array.prototype.forEach.call(sheet.querySelectorAll('.slot[data-copy]'), function (n) { sheet.removeChild(n); });
+      for (var i = 1; i < per; i++) {
+        var slot = document.createElement('div');
+        slot.className = 'slot'; slot.setAttribute('data-copy', p[0]);
+        sheet.insertBefore(slot, p[1]);
+      }
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.page-front .slot'), function (slot, i) {
+      Array.prototype.forEach.call(slot.querySelectorAll('.cm'), function (n) { slot.removeChild(n); });
+      var r = Math.floor(i / L.cols), c = i % L.cols, marks = [];
+      if (c === 0) marks.push('h tl', 'h bl');
+      if (c === L.cols - 1) marks.push('h tr', 'h br');
+      if (r === 0) marks.push('v tl', 'v tr');
+      if (r === L.rows - 1) marks.push('v bl', 'v br');
+      marks.forEach(function (m) {
+        var mark = document.createElement('i'); mark.className = 'cm ' + m;
+        slot.insertBefore(mark, slot.firstChild);
+      });
+    });
+    var orient = L.land ? 'landscape' : 'portrait';
+    el.noteFront.textContent = 'Page 1 of 2 · Fronts · ' + per + ' per A4 ' + orient + ' · print double-sided at 100% scale';
+    el.stageSub.textContent = per + (per === 1 ? ' card' : ' cards') + ' per sheet · ' + L.size + ' · A4 ' + orient + ' · print double-sided';
+    Array.prototype.forEach.call(el.perPick.querySelectorAll('.per-opt'), function (b) {
+      b.setAttribute('aria-checked', +b.getAttribute('data-per') === per ? 'true' : 'false');
+    });
+    scalePreview();
+  }
+  el.perPick.addEventListener('click', function (e) {
+    var b = e.target.closest('.per-opt'); if (!b) return;
+    state.per = +b.getAttribute('data-per');
+    render(); save();
+  });
+
+  /* Copy the master front/back card into every other slot of each page. */
   function syncCopies() {
     var pairs = [['front', el.frontCard], ['back', el.backCard]];
     pairs.forEach(function (p) {
@@ -341,14 +397,16 @@
     if (!box || !state.photo) return;
     e.preventDefault();
     try { box.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ }
-    drag = { x: e.clientX, y: e.clientY, px: state.px, py: state.py, box: box };
+    // on-screen px per layout px (preview zoom × card print scale)
+    var k = box.getBoundingClientRect().width / box.offsetWidth || viewScale;
+    drag = { x: e.clientX, y: e.clientY, px: state.px, py: state.py, box: box, k: k };
     box.classList.add('dragging');
   });
   el.pages.addEventListener('pointermove', function (e) {
     if (!drag) return;
     var g = photoGeom(); if (!g) return;
     var sx = g.fw - g.dw, sy = g.fh - g.dh;
-    var dx = (e.clientX - drag.x) / viewScale, dy = (e.clientY - drag.y) / viewScale;
+    var dx = (e.clientX - drag.x) / drag.k, dy = (e.clientY - drag.y) / drag.k;
     if (sx < -0.5) state.px = clamp(drag.px + dx / sx, 0, 1);
     if (sy < -0.5) state.py = clamp(drag.py + dy / sy, 0, 1);
     layoutPhoto();
@@ -404,6 +462,20 @@
     else if (words < 4) setNote(el.nameNote, 'warn', 'The card asks for your full four-part name (' + words + ' entered).');
     else setNote(el.nameNote, 'ok', '✓ Looks good.');
   }
+  // Arabic-Indic digits → 0-9, tidy spacing
+  function cleanMobile(v) {
+    return String(v).replace(/[\u0660-\u0669\u06F0-\u06F9]/g, function (d) {
+      return String((d.charCodeAt(0) & 0xF));
+    }).replace(/\s+/g, ' ').trim();
+  }
+  function mobileNote() {
+    var v = cleanMobile(state.mobile), digits = v.replace(/\D/g, '').length;
+    if (!v) setNote(el.mobileNote, '', '');
+    else if (/[^\d\s+\-().]/.test(v)) setNote(el.mobileNote, 'bad', 'Use digits only (and + for the country code).');
+    else if (digits < 8) setNote(el.mobileNote, 'warn', 'This number looks too short.');
+    else if (v.charAt(0) !== '+') setNote(el.mobileNote, 'warn', 'Tip: add your country code, e.g. +20 for Egypt.');
+    else setNote(el.mobileNote, '', '');
+  }
   function linkNote() {
     var v = state.link.trim(), valid = /^https?:\/\/\S+$/i.test(v);
     el.testLink.hidden = !valid;
@@ -427,6 +499,7 @@
     fitLine(el.fProgram, 8, 5.2);
     fitLine(el.fTrackDd, 8, 5.2);
     fitLine(el.fEmail, 8, 5.2);
+    fitLine(el.fMobile, 8, 5.2);
   }
 
   /* ---------------- Render ---------------- */
@@ -444,6 +517,8 @@
     setText(el.fRole, job, 'Job Profile');
     setText(el.fTrack, t ? t.label : '', 'Select your track');
     setText(el.fEmail, email, 'name@example.com');
+    setText(el.fMobile, cleanMobile(state.mobile), '+20 100 000 0000');
+    buildLayout();
 
     if (lastTrack !== state.track) {
       lastTrack = state.track;
@@ -457,6 +532,7 @@
     renderQR();
     renderPhoto();
     nameNote();
+    mobileNote();
     linkNote();
     fitAll();
     syncCopies();
@@ -465,6 +541,7 @@
   function syncForm() {
     el.inName.value = state.name;
     el.inEmail.value = state.email;
+    el.inMobile.value = state.mobile;
     el.inJob.value = state.job;
     el.inLink.value = state.link;
     el.inZoom.value = state.zoom;
@@ -475,6 +552,7 @@
   }
   bindInput(el.inName, 'name');
   bindInput(el.inEmail, 'email');
+  bindInput(el.inMobile, 'mobile');
   bindInput(el.inJob, 'job');
   bindInput(el.inLink, 'link');
 
@@ -484,7 +562,8 @@
     var avail = el.paperFit.clientWidth;
     if (!avail) return;
     el.pages.style.transform = 'none';
-    el.pages.classList.toggle('row', avail >= 820);
+    var land = (LAYOUTS[state.per] || LAYOUTS[DEFAULTS.per]).land;
+    el.pages.classList.toggle('row', avail >= (land ? 1600 : 820));
     var W = el.pages.offsetWidth, H = el.pages.offsetHeight;
     if (!W) return;
     viewScale = Math.min(1, avail / W);
@@ -500,6 +579,7 @@
     var miss = [];
     if (!state.name.trim()) miss.push('full name');
     if (!state.email.trim()) miss.push('email');
+    if (!state.mobile.trim()) miss.push('mobile number');
     if (!state.track) miss.push('track');
     if (!state.job.trim()) miss.push('job profile');
     if (!state.photo) miss.push('photo');
