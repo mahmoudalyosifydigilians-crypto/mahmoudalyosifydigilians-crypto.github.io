@@ -236,10 +236,14 @@ input[type=text]:focus, input[type=email]:focus, input[type=url]:focus {
 }
 .stage-sub { font-weight: 500; color: var(--muted); font-size: 12px; }
 .paper-fit { position: relative; overflow: hidden; }
-.paper-fit .sheet {
-  position: absolute; top: 0; left: 0; transform-origin: 0 0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, .08), 0 20px 50px rgba(0, 30, 70, .18);
+.pages {
+  position: absolute; top: 0; left: 0; transform-origin: 0 0; width: max-content;
+  display: flex; flex-direction: column; gap: 28px;
 }
+.pages.row { flex-direction: row; }
+.page-label { margin: 0 0 10px 2px; font: 500 14px 'Montserrat', sans-serif; color: var(--muted); }
+.page-label b { color: var(--navy); }
+.paper-fit .sheet { box-shadow: 0 2px 6px rgba(0, 0, 0, .08), 0 20px 50px rgba(0, 30, 70, .18); }
 @media (max-width: 960px) { .stage { padding: 10px; } }
 
 /* ---------- Site footer ---------- */
@@ -255,33 +259,39 @@ input[type=text]:focus, input[type=email]:focus, input[type=url]:focus {
 /* =========================================================
    A4 SHEET + CARDS  (physical units: mm / pt)
    ========================================================= */
+/* Each A4 page holds 3 cards. Cards are designed at 180 × 95 mm and printed at
+   170 × 89.72 mm (scale .94444). Positions are fixed from the top so the fronts
+   (page 1) and backs (page 2) line up exactly when printed double-sided. */
 .sheet {
-  position: relative; box-sizing: border-box;
-  width: 210mm; height: 297mm; background: #fff;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 17mm;
+  position: relative; box-sizing: border-box; overflow: hidden;
+  width: 210mm; height: 297mm; background: #fff; padding-top: 8.9mm;
+  display: flex; flex-direction: column; align-items: center; gap: 5mm;
   font-family: 'Montserrat', Arial, sans-serif; color: var(--ink);
 }
 .sheet *, .sheet *::before, .sheet *::after { box-sizing: border-box; }
-.slot { position: relative; width: 180mm; height: 95mm; flex: none; }
-.slot-label {
-  position: absolute; left: 8mm; top: -5.4mm;
-  font: 600 5.6pt 'Montserrat', sans-serif; letter-spacing: .3em; text-transform: uppercase; color: #A3AABA;
-}
+.slot { position: relative; width: 170mm; height: 89.72mm; flex: none; }
 .sheet-note {
-  position: absolute; left: 0; right: 0; bottom: 9mm; margin: 0; text-align: center;
-  font: 500 6.2pt 'Montserrat', sans-serif; letter-spacing: .2em; text-transform: uppercase; color: #A9AFBD;
+  position: absolute; left: 0; right: 0; bottom: 3.4mm; margin: 0; text-align: center;
+  font: 500 5.6pt 'Montserrat', sans-serif; letter-spacing: .18em; text-transform: uppercase; color: #A9AFBD;
 }
 
-/* crop marks */
+/* crop marks (front page only) */
 .cm { position: absolute; background: #7F8798; }
-.cm.h { width: 5mm; height: .2mm; }
-.cm.v { width: .2mm; height: 5mm; }
-.cm.h.tl { left: -7mm; top: -.1mm; }    .cm.v.tl { left: -.1mm; top: -7mm; }
-.cm.h.tr { right: -7mm; top: -.1mm; }   .cm.v.tr { right: -.1mm; top: -7mm; }
-.cm.h.bl { left: -7mm; bottom: -.1mm; } .cm.v.bl { left: -.1mm; bottom: -7mm; }
-.cm.h.br { right: -7mm; bottom: -.1mm; } .cm.v.br { right: -.1mm; bottom: -7mm; }
+.cm.h { width: 6mm; height: .2mm; }
+.cm.v { width: .2mm; height: 4mm; }
+.cm.h.tl { left: -8mm; top: -.1mm; }    .cm.v.tl { left: -.1mm; top: -5.5mm; }
+.cm.h.tr { right: -8mm; top: -.1mm; }   .cm.v.tr { right: -.1mm; top: -5.5mm; }
+.cm.h.bl { left: -8mm; bottom: -.1mm; } .cm.v.bl { left: -.1mm; bottom: -5.5mm; }
+.cm.h.br { right: -8mm; bottom: -.1mm; } .cm.v.br { right: -.1mm; bottom: -5.5mm; }
 
-.card { position: absolute; inset: 0; overflow: hidden; border-radius: 1.4mm; }
+.card {
+  position: absolute; left: 0; top: 0; width: 180mm; height: 95mm;
+  transform: scale(.944444); transform-origin: 0 0;
+  overflow: hidden; border-radius: 1.4mm;
+}
+/* back: square corners + 1.7 mm bleed so a slightly-off duplex print never shows white edges */
+.page-back .card { border-radius: 0; outline: 1.7mm solid #00183A; }
+.page-back[data-track="ds"] .card { outline-color: #000F28; }
 .is-ph { color: #B3BACA !important; }
 
 /* ---------------- FRONT ---------------- */
@@ -520,20 +530,22 @@ input[type=text]:focus, input[type=email]:focus, input[type=url]:focus {
 .sheet[data-track="ds"] .qr-tile { border-radius: 2.7mm; }
 
 /* =========================================================
-   PRINT — exactly one A4 page with the two cards
+   PRINT — 2 A4 pages: page 1 = 3 fronts, page 2 = 3 backs
    ========================================================= */
 @page { size: A4 portrait; margin: 0; }
 
 @media print {
   html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
-  .topbar, .panel, .stage-head, .site-foot { display: none !important; }
+  .topbar, .panel, .stage-head, .site-foot, .page-label { display: none !important; }
   .app { display: block; max-width: none; margin: 0; padding: 0; }
   .stage { padding: 0; background: none; border-radius: 0; }
   .paper-fit { height: auto !important; overflow: visible; }
-  .paper-fit .sheet {
-    position: relative !important; left: auto !important; top: auto !important;
-    transform: none !important; box-shadow: none !important;
-    height: 296mm; break-after: avoid; page-break-after: avoid;
+  .pages {
+    position: static !important; transform: none !important; left: auto !important;
+    display: block !important; width: auto !important;
   }
+  .paper-fit .sheet { box-shadow: none !important; height: 296mm; }
+  .page-wrap:first-child { break-after: page; page-break-after: always; }
+  .page-wrap:last-child { break-after: avoid; page-break-after: avoid; }
   .ph-img { cursor: default; }
 }

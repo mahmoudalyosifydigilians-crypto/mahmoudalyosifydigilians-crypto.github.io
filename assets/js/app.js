@@ -76,7 +76,7 @@
   var el = {};
   ['inName', 'inEmail', 'inJob', 'inLink', 'inPhoto', 'inZoom', 'nameNote', 'linkNote', 'testLink',
    'trackPick', 'jobChips', 'drop', 'dropThumb', 'dropTitle', 'photoTools', 'dragTip', 'photoErr',
-   'btnPhotoReset', 'btnPrint', 'btnReset', 'paperFit', 'sheet',
+   'btnPhotoReset', 'btnPrint', 'btnReset', 'paperFit', 'pages', 'frontCard', 'backCard',
    'fName', 'fRole', 'fTrack', 'fTrackDd', 'fTrackIco', 'fEmail', 'fProgram', 'seal', 'fNet',
    'phBox', 'phImg', 'qrTile'
   ].forEach(function (id) { el[id] = $(id); });
@@ -246,11 +246,31 @@
     if (!state.photo) return;
     var g = photoGeom(); if (!g) return;
     var x = (g.fw - g.dw) * state.px, y = (g.fh - g.dh) * state.py;
-    var st = el.phImg.style;
-    st.width = (g.dw / g.fw * 100) + '%';
-    st.height = (g.dh / g.fh * 100) + '%';
-    st.left = (x / g.fw * 100) + '%';
-    st.top = (y / g.fh * 100) + '%';
+    // apply to the master photo and every printed copy
+    Array.prototype.forEach.call(document.querySelectorAll('.page-front .ph-img img'), function (im) {
+      var st = im.style;
+      st.width = (g.dw / g.fw * 100) + '%';
+      st.height = (g.dh / g.fh * 100) + '%';
+      st.left = (x / g.fw * 100) + '%';
+      st.top = (y / g.fh * 100) + '%';
+    });
+  }
+
+  /* Copy the master front/back card into the other two slots of each page. */
+  function syncCopies() {
+    var pairs = [['front', el.frontCard], ['back', el.backCard]];
+    pairs.forEach(function (p) {
+      Array.prototype.forEach.call(document.querySelectorAll('.slot[data-copy="' + p[0] + '"]'), function (slot) {
+        var copy = p[1].cloneNode(true);
+        copy.removeAttribute('id');
+        Array.prototype.forEach.call(copy.querySelectorAll('[id]'), function (n) {
+          if (!n.closest('defs')) n.removeAttribute('id');   // keep SVG gradient/path ids referenced by url(#…)
+        });
+        copy.setAttribute('aria-hidden', 'true');
+        var old = slot.querySelector('.card');
+        if (old) slot.replaceChild(copy, old); else slot.appendChild(copy);
+      });
+    });
   }
   el.phImg.addEventListener('load', layoutPhoto);
 
@@ -291,7 +311,7 @@
       URL.revokeObjectURL(url);
       state.photo = c.toDataURL('image/jpeg', 0.92);
       state.zoom = 1; state.px = 0.5; state.py = 0.3;
-      renderPhoto(); save();
+      render(); save();
       if (Math.min(w, h) < 350) showPhotoErr('This photo is quite small — it may look blurry when printed.');
     };
     img.onerror = function () {
@@ -313,16 +333,18 @@
     state.zoom = 1; state.px = 0.5; state.py = 0.3; el.inZoom.value = 1; layoutPhoto(); save();
   });
 
-  // drag to reposition / wheel to zoom, on the card preview
+  // drag to reposition / wheel to zoom — works on any of the front cards in the preview
   var drag = null, viewScale = 1;
-  el.phBox.addEventListener('pointerdown', function (e) {
-    if (!state.photo) return;
+  function photoTarget(e) { return e.target.closest ? e.target.closest('.page-front .ph-img') : null; }
+  el.pages.addEventListener('pointerdown', function (e) {
+    var box = photoTarget(e);
+    if (!box || !state.photo) return;
     e.preventDefault();
-    try { el.phBox.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ }
-    drag = { x: e.clientX, y: e.clientY, px: state.px, py: state.py };
-    el.phBox.classList.add('dragging');
+    try { box.setPointerCapture(e.pointerId); } catch (x) { /* ignore */ }
+    drag = { x: e.clientX, y: e.clientY, px: state.px, py: state.py, box: box };
+    box.classList.add('dragging');
   });
-  el.phBox.addEventListener('pointermove', function (e) {
+  el.pages.addEventListener('pointermove', function (e) {
     if (!drag) return;
     var g = photoGeom(); if (!g) return;
     var sx = g.fw - g.dw, sy = g.fh - g.dh;
@@ -331,11 +353,11 @@
     if (sy < -0.5) state.py = clamp(drag.py + dy / sy, 0, 1);
     layoutPhoto();
   });
-  function endDrag() { if (drag) { drag = null; el.phBox.classList.remove('dragging'); save(); } }
-  el.phBox.addEventListener('pointerup', endDrag);
-  el.phBox.addEventListener('pointercancel', endDrag);
-  el.phBox.addEventListener('wheel', function (e) {
-    if (!state.photo) return;
+  function endDrag() { if (drag) { drag.box.classList.remove('dragging'); drag = null; save(); } }
+  el.pages.addEventListener('pointerup', endDrag);
+  el.pages.addEventListener('pointercancel', endDrag);
+  el.pages.addEventListener('wheel', function (e) {
+    if (!photoTarget(e) || !state.photo) return;
     e.preventDefault();
     state.zoom = clamp(state.zoom + (e.deltaY < 0 ? 0.05 : -0.05), 1, 2.5);
     el.inZoom.value = state.zoom; layoutPhoto(); saveSoon();
@@ -411,7 +433,9 @@
   var lastTrack = null;
   function render() {
     var t = TRACKS[state.track];
-    el.sheet.setAttribute('data-track', state.track || '');
+    Array.prototype.forEach.call(document.querySelectorAll('.sheet'), function (sh) {
+      sh.setAttribute('data-track', state.track || '');
+    });
 
     var name = state.name.trim().replace(/\s+/g, ' ');
     var job = state.job.trim();
@@ -435,6 +459,7 @@
     nameNote();
     linkNote();
     fitAll();
+    syncCopies();
   }
 
   function syncForm() {
@@ -454,13 +479,17 @@
   bindInput(el.inLink, 'link');
 
   /* ---------------- Preview scaling ---------------- */
+  // Two A4 pages side by side on wide screens, stacked on narrow ones.
   function scalePreview() {
     var avail = el.paperFit.clientWidth;
-    var W = el.sheet.offsetWidth, H = el.sheet.offsetHeight;
-    if (!avail || !W) return;
+    if (!avail) return;
+    el.pages.style.transform = 'none';
+    el.pages.classList.toggle('row', avail >= 820);
+    var W = el.pages.offsetWidth, H = el.pages.offsetHeight;
+    if (!W) return;
     viewScale = Math.min(1, avail / W);
-    el.sheet.style.transform = 'scale(' + viewScale + ')';
-    el.sheet.style.left = Math.max(0, (avail - W * viewScale) / 2) + 'px';
+    el.pages.style.transform = 'scale(' + viewScale + ')';
+    el.pages.style.left = Math.max(0, (avail - W * viewScale) / 2) + 'px';
     el.paperFit.style.height = (H * viewScale) + 'px';
   }
   if (window.ResizeObserver) new ResizeObserver(scalePreview).observe(el.paperFit);
@@ -476,10 +505,10 @@
     if (!state.photo) miss.push('photo');
     if (!state.link.trim()) miss.push('Drive folder link');
     if (miss.length && !window.confirm('Still missing: ' + miss.join(', ') + '.\n\nPrint anyway?')) return;
-    var go = function () { fitAll(); window.print(); };
+    var go = function () { fitAll(); syncCopies(); window.print(); };
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(go, go); else go();
   });
-  window.addEventListener('beforeprint', fitAll);
+  window.addEventListener('beforeprint', function () { fitAll(); syncCopies(); });
 
   el.btnReset.addEventListener('click', function () {
     if (!window.confirm('Clear all your details and photo?')) return;
@@ -499,7 +528,7 @@
   syncForm();
   render();
   scalePreview();
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fitAll(); layoutPhoto(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fitAll(); layoutPhoto(); syncCopies(); });
 
   /* Hook for prefilling (used for testing). */
   window.CardApp = {

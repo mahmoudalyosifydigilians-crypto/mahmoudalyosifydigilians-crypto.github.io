@@ -38,7 +38,7 @@
       <li><b>Fill in</b> your details</li>
       <li><b>Upload</b> a formal photo</li>
       <li><b>Paste</b> your Drive folder link</li>
-      <li><b>Print</b> on A4 &amp; cut</li>
+      <li><b>Print</b> 2-sided &amp; cut</li>
     </ol>
 
     <section class="group">
@@ -120,14 +120,15 @@
       <button type="button" class="btn-ghost" id="btnReset">Clear all</button>
     </div>
 
-    <details class="howto">
+    <details class="howto" open>
       <summary>Printing &amp; cutting guide</summary>
       <ul>
-        <li>Paper: <b>A4</b> · Scale: <b>100% / Default</b> · Margins: <b>None</b></li>
-        <li>Turn on <b>Background graphics</b> in the print dialog.</li>
-        <li>Use thick paper (250–300 gsm) for a premium finish.</li>
-        <li>Cut along the corner marks, then glue the front and back together — or laminate them.</li>
-        <li>Scan the QR code with your phone before printing many copies.</li>
+        <li>The PDF has <b>2 pages</b>: page 1 = 3 fronts, page 2 = 3 backs (QR).</li>
+        <li>Paper: <b>A4</b> · Scale: <b>100% / Default</b> · Margins: <b>None</b> · <b>Background graphics</b>: on.</li>
+        <li>Two-sided: choose <b>Print on both sides → Flip on long edge</b>.</li>
+        <li>No two-sided printer? Print page 1, put the same sheet back in the tray flipped over, then print page 2 — or print both pages and glue them back to back.</li>
+        <li>Cut the left and right margins along the marks first, then cut between the cards — 3 cards per sheet.</li>
+        <li>Use thick paper (250–300 gsm) and scan the QR with your phone before printing many copies.</li>
       </ul>
     </details>
 
@@ -137,90 +138,98 @@
   <!-- ============ PREVIEW ============ -->
   <section class="stage" aria-label="A4 print preview">
     <div class="stage-head">
-      <span>A4 print preview</span>
-      <span class="stage-sub">Front &amp; back · 180 × 95 mm each</span>
+      <span>A4 print preview · 2 pages</span>
+      <span class="stage-sub">3 cards per sheet · 170 × 90 mm · print double-sided</span>
     </div>
 
     <div class="paper-fit" id="paperFit">
-      <div class="sheet" id="sheet" data-track="">
+      <div class="pages" id="pages">
 
-        <!-- FRONT -->
-        <div class="slot">
-          <span class="slot-label">Front</span>
-          <i class="cm h tl"></i><i class="cm v tl"></i><i class="cm h tr"></i><i class="cm v tr"></i>
-          <i class="cm h bl"></i><i class="cm v bl"></i><i class="cm h br"></i><i class="cm v br"></i>
+        <!-- PAGE 1 — FRONTS -->
+        <div class="page-wrap">
+          <p class="page-label"><b>Page 1</b> · Fronts</p>
+          <div class="sheet page-front" data-track="">
+            <div class="slot">
+              <i class="cm h tl"></i><i class="cm h tr"></i><i class="cm h bl"></i><i class="cm h br"></i><i class="cm v tl"></i><i class="cm v tr"></i>
+              <article class="card front" id="frontCard">
+                <div class="f-tri"><i></i><i></i><i></i></div>
+                <div class="f-lines"></div>
+                <svg class="f-net" id="fNet" viewBox="0 0 80 62" preserveAspectRatio="none" aria-hidden="true"></svg>
+                <div class="ds-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 
-          <article class="card front">
-            <div class="f-tri"><i></i><i></i><i></i></div>
-            <div class="f-lines"></div>
-            <svg class="f-net" id="fNet" viewBox="0 0 80 62" preserveAspectRatio="none" aria-hidden="true"></svg>
-            <div class="ds-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                <header class="logos">
+                  <div class="logo l-ema"><img src="assets/img/logos/military-academy.png" alt="Egyptian Military Academy"></div>
+                  <i class="sep"></i>
+                  <div class="logo l-digi"><img src="assets/img/logos/digilians.png" alt="Digilians"></div>
+                  <i class="sep"></i>
+                  <div class="logo l-queens"><img src="assets/img/logos/queens.png" alt="Queen's University"></div>
+                  <i class="sep"></i>
+                  <div class="logo l-mcit"><img src="assets/img/logos/mcit.png" alt="Ministry of Communications and Information Technology"></div>
+                </header>
 
-            <header class="logos">
-              <div class="logo l-ema"><img src="assets/img/logos/military-academy.png" alt="Egyptian Military Academy"></div>
-              <i class="sep"></i>
-              <div class="logo l-digi"><img src="assets/img/logos/digilians.png" alt="Digilians"></div>
-              <i class="sep"></i>
-              <div class="logo l-queens"><img src="assets/img/logos/queens.png" alt="Queen's University"></div>
-              <i class="sep"></i>
-              <div class="logo l-mcit"><img src="assets/img/logos/mcit.png" alt="Ministry of Communications and Information Technology"></div>
-            </header>
+                <div class="rule"><i></i></div>
 
-            <div class="rule"><i></i></div>
-
-            <section class="f-body">
-              <div class="ph">
-                <div class="ph-frame">
-                  <div class="ph-img" id="phBox">
-                    <img id="phImg" alt="" draggable="false">
-                    <div class="ph-empty" id="phEmpty">
-                      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="4"/><path d="M4 21c.8-4.4 4-6.5 8-6.5s7.2 2.1 8 6.5"/></svg>
-                      <span>PHOTO</span>
+                <section class="f-body">
+                  <div class="ph">
+                    <div class="ph-frame">
+                      <div class="ph-img" id="phBox">
+                        <img id="phImg" alt="" draggable="false">
+                        <div class="ph-empty" id="phEmpty">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="4"/><path d="M4 21c.8-4.4 4-6.5 8-6.5s7.2 2.1 8 6.5"/></svg>
+                          <span>PHOTO</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <div class="info">
-                <h2 class="name fit" id="fName"></h2>
-                <div class="role fit" id="fRole"></div>
-                <div class="hair"></div>
-                <div class="f-lower">
-                  <dl class="fields">
-                    <dt>Program</dt><dd id="fProgram">Professional Master</dd>
-                    <dt>Track</dt><dd class="track-dd" id="fTrackDd"><span class="t-ico" id="fTrackIco"></span><span id="fTrack"></span></dd>
-                    <dt>Email</dt><dd id="fEmail"></dd>
-                  </dl>
-                  <div class="seal" id="seal"></div>
-                </div>
-              </div>
-            </section>
+                  <div class="info">
+                    <h2 class="name fit" id="fName"></h2>
+                    <div class="role fit" id="fRole"></div>
+                    <div class="hair"></div>
+                    <div class="f-lower">
+                      <dl class="fields">
+                        <dt>Program</dt><dd id="fProgram">Professional Master</dd>
+                        <dt>Track</dt><dd class="track-dd" id="fTrackDd"><span class="t-ico" id="fTrackIco"></span><span id="fTrack"></span></dd>
+                        <dt>Email</dt><dd id="fEmail"></dd>
+                      </dl>
+                      <div class="seal" id="seal"></div>
+                    </div>
+                  </div>
+                </section>
 
-            <footer class="foot">
-              <i class="dash"></i>
-              <span class="foot-t">DIGILIANS <b>·</b> <span class="ar">الرواد الرقميون</span></span>
-              <i class="dash r"></i>
-            </footer>
-          </article>
-        </div>
-
-        <!-- BACK -->
-        <div class="slot">
-          <span class="slot-label">Back</span>
-          <i class="cm h tl"></i><i class="cm v tl"></i><i class="cm h tr"></i><i class="cm v tr"></i>
-          <i class="cm h bl"></i><i class="cm v bl"></i><i class="cm h br"></i><i class="cm v br"></i>
-
-          <article class="card back">
-            <div class="b-frame"></div>
-            <div class="qr-wrap">
-              <div class="qr-ring">
-                <div class="qr-tile" id="qrTile"></div>
-              </div>
+                <footer class="foot">
+                  <i class="dash"></i>
+                  <span class="foot-t">DIGILIANS <b>·</b> <span class="ar">الرواد الرقميون</span></span>
+                  <i class="dash r"></i>
+                </footer>
+              </article>
             </div>
-          </article>
+            <div class="slot" data-copy="front"><i class="cm h tl"></i><i class="cm h tr"></i><i class="cm h bl"></i><i class="cm h br"></i></div>
+            <div class="slot" data-copy="front"><i class="cm h tl"></i><i class="cm h tr"></i><i class="cm h bl"></i><i class="cm h br"></i><i class="cm v bl"></i><i class="cm v br"></i></div>
+            <p class="sheet-note">Page 1 of 2 · Fronts · print double-sided, flip on long edge, 100% scale</p>
+          </div>
         </div>
 
-        <p class="sheet-note">A4 · print at 100% scale · cut along the corner marks</p>
+        <!-- PAGE 2 — BACKS -->
+        <div class="page-wrap">
+          <p class="page-label"><b>Page 2</b> · Backs</p>
+          <div class="sheet page-back" data-track="">
+            <div class="slot">
+              <article class="card back" id="backCard">
+                <div class="b-frame"></div>
+                <div class="qr-wrap">
+                  <div class="qr-ring">
+                    <div class="qr-tile" id="qrTile"></div>
+                  </div>
+                </div>
+              </article>
+            </div>
+            <div class="slot" data-copy="back"></div>
+            <div class="slot" data-copy="back"></div>
+            <p class="sheet-note">Page 2 of 2 · Backs</p>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
